@@ -1,35 +1,43 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [tasks, setTasks] = useState([]);
+  const [title, setTitle] = useState("");
+
+  useEffect(() => {
+    axios.get("http://127.0.0.1:8000/api/tasks/")
+      .then(res => setTasks(res.data));
+  }, []);
+
+  const addTask = () => {
+    axios.post("http://127.0.0.1:8000/api/tasks/", { title, completed: false })
+      .then(res => setTasks([...tasks, res.data]));
+    setTitle("");
+  };
+
+  const deleteTask = (id) => {
+    axios.delete(`http://127.0.0.1:8000/api/tasks/${id}/`)
+      .then(() => setTasks(tasks.filter(t => t.id !== id)));
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="p-4">
+      <h1>Todo App</h1>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New task" />
+      <button onClick={addTask}>Add</button>
+
+      <ul>
+        {tasks.map(task => (
+          <li key={task.id}>
+            {task.title} 
+            <button onClick={() => deleteTask(task.id)}>❌</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-export default App
+export default App;
+
